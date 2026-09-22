@@ -108,36 +108,42 @@ The architecture follows the main MNIST configuration described in the paper, in
 
 The model optimizes the Evidence Lower Bound (ELBO):
 
+```text
 L(θ, φ; x)
 =
 E_q[log pθ(x,z) - log qφ(z|x)]
-
+```
 which can be written as:
 
+```text
 L(θ, φ; x)
 =
 -DKL(qφ(z|x) || pθ(z))
 +
 Eq[log pθ(x|z)]
+```
 
 The loss minimized during training is therefore:
-
+```text
 Negative ELBO
 =
 KL divergence
 -
 Reconstruction log likelihood
+```
 
 The encoder produces:
-
+```text
 μ
 log(σ²)
+```
 
 and the latent variable is sampled using the reparameterization:
-
+```text
 z = μ + σ ⊙ ε
 
 ε ~ N(0, I)
+```
 
 This makes the stochastic sampling operation differentiable with respect to the encoder parameters.
 
@@ -332,8 +338,8 @@ The true posterior p(z|x) is often intractable. A parameterized distribution qφ
 
 The ELBO provides a tractable objective that combines:
 
-Reconstruction quality
-Regularization of the latent distribution
+- Reconstruction quality
+- Regularization of the latent distribution
 
 This connects probabilistic inference with neural-network optimization.
 
@@ -343,7 +349,9 @@ Sampling directly from a parameterized Gaussian prevents straightforward backpro
 
 The transformation:
 
+```text
 z = μ + σ ⊙ ε
+```
 
 separates randomness from the learnable parameters and makes gradient-based optimization possible.
 
