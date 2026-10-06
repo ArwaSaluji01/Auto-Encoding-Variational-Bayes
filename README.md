@@ -2,9 +2,9 @@
 
 A from-scratch TensorFlow/Keras implementation of **Auto-Encoding Variational Bayes (AEVB)** based on the paper by Diederik P. Kingma and Max Welling.
 
-The project implements the core ideas behind the Variational Autoencoder (VAE), including probabilistic encoding, the reparameterization trick, ELBO optimization, latent-space representation, generative sampling, and marginal likelihood estimation.
+The project implements the core ideas behind the Variational Autoencoder, including probabilistic encoding, the reparameterization trick, ELBO optimization, latent-space representation, generative sampling, latent-dimension experiments, wake-sleep comparison, and marginal likelihood estimation.
 
-The implementation is developed progressively from the mathematical formulation in the original paper to a complete working model on MNIST.
+The implementation is structured as a miniature research reproduction, with reduced experimental configurations.
 
 ---
 
@@ -12,18 +12,18 @@ The implementation is developed progressively from the mathematical formulation 
 
 Variational inference provides a way to approximate otherwise intractable posterior distributions in probabilistic generative models.
 
-The AEVB framework introduced by Kingma and Welling combines:
+The AEVB framework combines:
 
-- Variational inference
-- The Stochastic Gradient Variational Bayes (SGVB) estimator
-- The reparameterization trick
-- Neural-network-based recognition and generative models
+* Variational inference
+* Stochastic Gradient Variational Bayes (SGVB)
+* The reparameterization trick
+* Neural-network-based recognition and generative models
 
 The resulting architecture is commonly known as the **Variational Autoencoder (VAE)**.
 
-This project implements AEVB from the underlying equations rather than relying on a pre-built VAE implementation.
+This project implements the method from its underlying mathematical formulation rather than relying on a pre-built VAE implementation.
 
-The complete pipeline is:
+### Main Pipeline
 
 ```text
 MNIST image
@@ -41,7 +41,7 @@ Probabilistic Decoder
 Reconstructed image
 ```
 
-**For generation:**
+For generation:
 
 ```text
 z ~ N(0, I)
@@ -59,48 +59,45 @@ Generated MNIST image
 
 **Auto-Encoding Variational Bayes**
 
-arXiv:1312.6114
-
-Original paper — Auto-Encoding Variational Bayes
-
-The implementation follows the mathematical formulation and experimental ideas presented in the original paper.
+[Original Paper — arXiv:1312.6114](https://arxiv.org/abs/1312.6114)
 
 ---
 
 ## Dataset
-**MNIST**
 
-The project uses the **MNIST handwritten digit dataset** containing 28 × 28 grayscale images of handwritten digits from 0 to 9.
+### MNIST
+
+The project uses the MNIST handwritten digit dataset containing 28 × 28 grayscale images of handwritten digits from 0 to 9.
 
 Each image is:
 
-- Normalized to the range [0, 1]
-- Flattened from 28 × 28 to 784 dimensions
-- Modelled using a Bernoulli decoder
+* Normalized to `[0, 1]`
+* Binarized using a threshold of `0.5`
+* Flattened from 28 × 28 to 784 dimensions
+* Modelled using a Bernoulli decoder
 
 The standard TensorFlow/Keras MNIST train/test split is used.
 
 ---
 
 ## Model Architecture
-**Main AEVB Model**
 
-The primary model uses:
+### Main AEVB Model
 
-| Component | Configuration |
-|---|---|
-| Input dimension | 784 |
-| Hidden units | 500 |
-| Latent dimensions | 20 |
-| Decoder output | 784 |
-| Decoder activation | Sigmoid |
-| Hidden activation | Tanh |
-| Batch size | 100 |
-| Latent samples per datapoint | 1 |
-| Optimizer | Adagrad |
-| Learning rate | 0.01 |
+| Component                    | Configuration |
+| ---------------------------- | ------------- |
+| Input dimension              | 784           |
+| Hidden units                 | 500           |
+| Latent dimensions            | 20            |
+| Decoder output               | 784           |
+| Hidden activation            | Tanh          |
+| Observation model            | Bernoulli     |
+| Batch size                   | 100           |
+| Latent samples per datapoint | 1             |
+| Optimizer                    | Adagrad       |
+| Learning rate                | 0.01          |
 
-The architecture follows the main MNIST configuration described in the paper, including 500 hidden units, minibatches of 100, one latent sample per datapoint, and Adagrad optimization.
+The main configuration follows the paper's MNIST setup closely while keeping the implementation practical for Colab.
 
 ---
 
@@ -113,17 +110,19 @@ L(θ, φ; x)
 =
 E_q[log pθ(x,z) - log qφ(z|x)]
 ```
+
 which can be written as:
 
 ```text
 L(θ, φ; x)
 =
--DKL(qφ(z|x) || pθ(z))
-+
-Eq[log pθ(x|z)]
+E_q[log pθ(x|z)]
+-
+DKL(qφ(z|x) || p(z))
 ```
 
 The loss minimized during training is therefore:
+
 ```text
 Negative ELBO
 =
@@ -133,219 +132,242 @@ Reconstruction log likelihood
 ```
 
 The encoder produces:
+
 ```text
 μ
 log(σ²)
 ```
 
-and the latent variable is sampled using the reparameterization:
+and the latent variable is sampled using:
+
 ```text
 z = μ + σ ⊙ ε
 
 ε ~ N(0, I)
 ```
 
-This makes the stochastic sampling operation differentiable with respect to the encoder parameters.
+This separates the stochastic component from the learnable parameters and allows gradient-based optimization.
 
 ---
 
 ## Implementation Levels
 
-The notebook is organized progressively:
+### Level 1 — Environment and Data Preprocessing
 
-**Level 1 — Environment and Data Preprocessing**
-- TensorFlow setup
-- Random seeds
-- MNIST loading
-- Normalization
-- Flattening
-- Dataset batching
+* TensorFlow setup
+* Random seeds
+* MNIST loading
+* Normalization
+* Binarization
+* Flattening
+* Dataset batching
 
-**Level 2 — Probabilistic Encoder**
-- Neural-network encoder
-- Mean estimation
-- Log-variance estimation
+### Level 2 — Probabilistic Encoder
 
-**Level 3 — Reparameterization**
-- Gaussian latent sampling
-- Reparameterization trick
-- Stochasticity verification
+* Neural-network encoder
+* Mean estimation
+* Log-variance estimation
 
-**Level 4 — Probabilistic Decoder**
-- Neural-network decoder
-- Bernoulli output distribution
-- Image reconstruction
+### Level 3 — Reparameterization
 
-**Level 5 — ELBO and Loss**
-- KL divergence
-- Bernoulli reconstruction likelihood
-- ELBO computation
-- Negative ELBO loss
+* Gaussian latent sampling
+* Reparameterization trick
+* Stochasticity verification
 
-**Level 6 — AEVB Training**
-- Gradient-based optimization
-- Adagrad
-- Mini-batch training
-- ELBO monitoring
+### Level 4 — Probabilistic Decoder
 
-**Level 7 — Evaluation**
-- Test-set ELBO
-- KL divergence
-- Reconstruction likelihood
-- Reconstruction quality
-- MSE as an auxiliary metric
+* Neural-network decoder
+* Bernoulli output distribution
+* Image reconstruction
 
-**Level 8 — 2D Latent Space**
-A separate 2-dimensional VAE is trained to visualize how MNIST samples are organized in latent space.
+### Level 5 — ELBO and Loss
 
-**Level 9 — Generation**
-The trained decoder is used to:
-- Generate new MNIST images from random latent vectors
-- Generate related images from nearby latent points
-- Explore generation using the 2D latent model
+* KL divergence
+* Bernoulli reconstruction likelihood
+* ELBO computation
+* Negative ELBO loss
 
-**Level 10 — Marginal Likelihood**
-A separate low-dimensional model with:
-- 100 hidden units
-- 3 latent variables
-is used to explore the paper's MCMC-based marginal likelihood estimator.
+### Level 6 — AEVB Training
 
-The paper specifically uses this low-dimensional configuration because its estimator becomes unreliable for higher-dimensional latent spaces.
+* Gradient-based optimization
+* Adagrad
+* Mini-batch training
+* ELBO monitoring
+
+### Level 7 — Evaluation
+
+* Test-set ELBO
+* KL divergence
+* Reconstruction likelihood
+* Reconstruction quality
+* MSE as an auxiliary metric
+
+### Level 8 — Latent Dimension Analysis
+
+The model is evaluated using multiple latent dimensions:
+
+```text
+2, 5, 10, 20, 50
+```
+
+This provides a small-scale comparison of representation capacity versus latent dimensionality.
+
+### Level 9 — 2D Latent Space and Generation
+
+A separate 2D model is trained to visualize the learned latent representation.
+
+The notebook also explores:
+
+* Generated MNIST images from random latent vectors
+* Nearby latent points
+* Continuous structure in the learned latent space
+
+### Level 10 — Wake-Sleep Comparison
+
+A lightweight wake-sleep baseline is implemented to compare its behavior against standard AEVB training.
+
+This is a simplified experimental comparison rather than an exact reproduction of the historical wake-sleep experiments.
+
+### Level 11 — Marginal Likelihood
+
+A separate low-dimensional model is used to investigate marginal likelihood estimation.
+
+The experiment uses:
+
+* 100 hidden units
+* 3 latent variables
+* Reduced sampling configuration for Colab
+
+HMC is used for posterior-sampling analysis.
+
+For the marginal likelihood estimate itself, samples are drawn directly from the learned variational posterior:
+
+```text
+z ~ q(z|x)
+```
+
+and Monte Carlo importance sampling is used:
+
+```text
+p(x) ≈
+1/N Σ [p(x,z) / q(z|x)]
+```
+
+This avoids fitting an additional KDE to the posterior samples and keeps the experiment computationally manageable.
 
 ---
 
 ## Results
 
-**Main 20D AEVB Model**
+### Main 20D AEVB Model
+
 The model was trained for 20 epochs.
-Training Negative ELBO
-- Epoch 01: 166.42
-- Epoch 05: 126.01
-- Epoch 10: 121.06
-- Epoch 15: 118.13
-- Epoch 20: 115.93
 
-The negative ELBO decreased consistently throughout training.
-- Test Evaluation
-- Test Negative ELBO: 114.74
-- Mean KL divergence: 26.14
-- Mean reconstruction term: -88.61
-- ELBO: -114.75
-- Reconstruction
+| Metric                            |   Result |
+| --------------------------------- | -------: |
+| Training Negative ELBO — Epoch 1  |   166.42 |
+| Training Negative ELBO — Epoch 20 |   115.93 |
+| Test Negative ELBO                |   114.74 |
+| Mean KL divergence                |    26.14 |
+| Mean reconstruction term          |   -88.61 |
+| Reconstruction MSE                | 0.115173 |
 
-The trained model produces recognizable reconstructions of MNIST digits.
+The negative ELBO decreased consistently during training.
 
-The reconstruction objective is based on the Bernoulli log likelihood rather than MSE. MSE was calculated only as an additional diagnostic metric.
+The reconstruction objective is based on the Bernoulli log likelihood; MSE is reported only as an auxiliary diagnostic metric.
 
-Reconstruction MSE: 0.115173
+### 2D Latent Representation
 
---- 
+The separate 2D model was trained for 15 epochs.
 
-**2D Latent Representation**
-A separate 2-dimensional model was trained for latent-space visualization.
-- Epoch 01/15: 201.35
-- Epoch 05/15: 179.40
-- Epoch 10/15: 176.26
-- Epoch 15/15: 173.60
+| Epoch | Negative ELBO |
+| ----: | ------------: |
+|     1 |        201.35 |
+|     5 |        179.40 |
+|    10 |        176.26 |
+|    15 |        173.60 |
 
-The resulting latent representation contains a continuous structure in which different MNIST digits occupy different regions, although substantial overlap remains.
+The resulting latent representation demonstrates continuous structure, with different MNIST digit classes occupying partially distinct regions while retaining some overlap.
 
-This experiment demonstrates the use of the learned recognition model for low-dimensional representation and visualization.
+### Image Generation
 
----
-
-**Image Generation**
 The trained 20-dimensional decoder was sampled using:
+
+```text
 z ~ N(0, I)
+```
 
-**Results:**
+Generated latent vectors:
 
-- Generated latent vectors: (20, 20)
-- Generated images:         (20, 784)
+```text
+(20, 20)
+```
 
-The generated samples demonstrate that the decoder can produce new digit-like images without receiving an input image.
+Generated images:
 
-Sampling nearby latent vectors also produced visually related outputs, demonstrating the continuous structure of the learned latent space.
+```text
+(20, 784)
+```
 
----
+The decoder produces digit-like samples without requiring an input image.
 
-**Marginal Likelihood Experiment**
-A separate 3-dimensional model was trained for the marginal likelihood experiment.
-- Hidden units: 100
-- Latent dimensions: 3
-- Training epochs: 15
+### Marginal Likelihood Experiment
 
-Training negative ELBO:
-- 203.20 → 165.48
+The final miniature experiment uses a 3-dimensional latent model.
 
-Hybrid Monte Carlo sampling produced:
-- Posterior samples: (50, 3)
-- HMC acceptance rate: 1.0
-
-The implemented estimator produced:
-Estimated log marginal likelihood:
--124.52
-
-ELBO estimate:
--115.24
-
----
-
-**Interpretation**
-The marginal-likelihood estimator should not be treated as a validated numerical reproduction of the paper's reported results.
-
-The estimated value was lower than the ELBO, whereas the theoretical marginal log likelihood should be greater than or equal to the ELBO.
-
-This indicates that the practical MCMC/KDE estimator used in this implementation requires further tuning and validation.
-
-The paper itself notes that the estimator requires sufficiently many samples and is intended for very low-dimensional latent spaces.
+| Metric                      |          Result |
+| --------------------------- | --------------: |
+| Number of evaluation images |              20 |
+| Mean ELBO                   | `[PLACEHOLDER]` |
+| Mean estimated log p(x)     | `[PLACEHOLDER]` |
+| Mean estimated gap          | `[PLACEHOLDER]` |
+| Median estimated gap        | `[PLACEHOLDER]` |
+| Minimum estimated gap       | `[PLACEHOLDER]` |
+| Maximum estimated gap       | `[PLACEHOLDER]` |
 
 ---
 
 ## Comparison with the Paper
 
-| Aspect | Original Paper | This Implementation |
-|---|---|---|
-| **Dataset** | MNIST | MNIST |
-| **Main hidden units** | 500 | 500 |
-| **Main latent representation** | Multiple configurations | 20D |
-| **Batch size** | 100 | 100 |
-| **Latent samples** | $L = 1$ | $L = 1$ |
-| **Optimizer** | Adagrad | Adagrad |
-| **Decoder** | Bernoulli for MNIST | Bernoulli |
-| **Reparameterization** | Gaussian | Gaussian |
-| **2D visualization** | Yes | Yes |
-| **Image generation** | Yes | Yes |
-| **Marginal likelihood** | 3D / 100 hidden units | 3D / 100 hidden units |
-| **HMC marginal-likelihood experiment** | Yes | Implemented experimentally |
-| **Exact numerical reproduction** | — | Not claimed |
+| Aspect                       | Original Paper             | This Implementation                  |
+| ---------------------------- | -------------------------- | ------------------------------------ |
+| Dataset                      | MNIST                      | MNIST                                |
+| Main hidden units            | 500                        | 500                                  |
+| Main latent representation   | Multiple configurations    | 20D                                  |
+| Batch size                   | 100                        | 100                                  |
+| Latent samples               | L = 1                      | L = 1                                |
+| Optimizer                    | Adagrad                    | Adagrad                              |
+| Decoder                      | Bernoulli for MNIST        | Bernoulli                            |
+| Reparameterization           | Gaussian                   | Gaussian                             |
+| 2D visualization             | Yes                        | Yes                                  |
+| Image generation             | Yes                        | Yes                                  |
+| Latent dimension experiments | Yes                        | Yes                                  |
+| Wake-Sleep comparison        | Yes                        | Lightweight baseline                 |
+| Marginal likelihood          | Low-dimensional experiment | Low-dimensional miniature experiment |
+| Exact numerical reproduction | —                          | Not claimed                          |
 
-The implementation focuses on reproducing the core methodology and learning behaviour rather than claiming exact reproduction of every numerical result from the original experiments.
+The project focuses on reproducing the core methodology and understanding the underlying implementation rather than claiming an exact numerical reproduction of every experiment.
 
-The paper reports that its marginal-likelihood estimator used 50 posterior samples and 4 HMC leapfrog steps, which were also used here as the starting configuration.
+The marginal likelihood experiment is particularly constrained by computational resources and should therefore be interpreted as an experimental implementation rather than a validated reproduction of the paper's reported numerical results.
 
 ---
 
 ## What I Learned
 
-This implementation provided a practical understanding of variational inference and generative modelling from both mathematical and implementation perspectives.
+### 1. Variational Inference
 
-**1. Variational Inference**
+The true posterior `p(z|x)` is often intractable. A parameterized distribution `qφ(z|x)` can instead be optimized to approximate it.
 
-The true posterior p(z|x) is often intractable. A parameterized distribution qφ(z|x) can instead be optimized to approximate it.
+### 2. ELBO
 
-**2. ELBO**
+The ELBO provides a tractable objective combining:
 
-The ELBO provides a tractable objective that combines:
-
-- Reconstruction quality
-- Regularization of the latent distribution
+* Reconstruction quality
+* Regularization of the latent distribution
 
 This connects probabilistic inference with neural-network optimization.
 
-**3. Reparameterization Trick**
-
-Sampling directly from a parameterized Gaussian prevents straightforward backpropagation.
+### 3. Reparameterization Trick
 
 The transformation:
 
@@ -353,65 +375,77 @@ The transformation:
 z = μ + σ ⊙ ε
 ```
 
-separates randomness from the learnable parameters and makes gradient-based optimization possible.
+separates randomness from the learnable parameters and enables gradient-based optimization.
 
-**4. Latent Representations**
+### 4. Latent Representations
 
-A VAE does not simply compress an image into a deterministic vector. It learns a probability distribution over latent representations.
+A VAE learns a probability distribution over latent representations rather than simply mapping each input to a deterministic vector.
 
-**5. Generative Modelling**
+### 5. Generative Modelling
 
-Once the latent distribution is learned, new observations can be generated by sampling from the prior and passing the samples through the decoder.
+Once the latent distribution is learned, new observations can be generated by sampling from the prior and passing those samples through the decoder.
 
-**6. Latent-Space Continuity**
+### 6. Latent-Space Continuity
 
 Nearby latent points tend to produce related outputs, providing an interpretable geometric view of the learned generative model.
 
-**7. Evaluation Beyond Reconstruction**
+### 7. Evaluation Beyond Reconstruction
 
-A model that reconstructs images well is not necessarily a well-calibrated probabilistic generative model. ELBO and marginal likelihood provide probabilistic evaluation perspectives beyond reconstruction error.
+Good reconstruction quality alone does not guarantee a well-calibrated probabilistic generative model. ELBO and marginal likelihood provide additional probabilistic perspectives.
 
-**8. Practical Research Implementation**
+### 8. Research Implementation
 
-Implementing the paper from its mathematical formulation highlighted the difference between:
-- reproducing the core algorithm.
-- reproducing an experimental setup.
-- and reproducing exact numerical results.
+Implementing the paper from its mathematical formulation highlighted the distinction between:
+
+* Reproducing the core algorithm
+* Reproducing an experimental setup
+* Reproducing exact numerical results
 
 ---
 
-## Conclusion
+## Future Improvements
 
-This project implements the central ideas of Auto-Encoding Variational Bayes from the mathematical formulation through training and generative evaluation.
+* Explicit implementation of the paper's MAP/weight-decay objective
+* Systematic hyperparameter studies
+* Convolutional VAE architectures
+* More extensive HMC convergence diagnostics
+* More robust marginal likelihood estimators
+* Larger Monte Carlo sample sizes
+* More complete Wake-Sleep and MCEM comparisons
+* Experiments on additional datasets
+* Larger-scale reproduction of the original experiments
 
-The implementation demonstrates how:
+---
+
+## Repository Structure
 
 ```text
-
-Variational Inference
-        +
-Reparameterization
-        +
-Neural Networks
-        ↓
-Efficient Approximate Posterior Inference
-        +
-Generative Modelling
-
+Auto-Encoding-Variational-Bayes/
+│
+├── notes/
+│   └── summary.md
+│
+├── src/
+│   └── Auto_Encoding_Variational_Bayes.ipynb
+│
+├── paper/
+│   └── 1312.6114v11.pdf
+│
+└── README.md
 ```
 
-can be combined into the architecture now widely known as the Variational Autoencoder.
-
-The project also highlights an important aspect of research-oriented implementation: distinguishing between a successful reproduction of the core method and an exact reproduction of every experimental result.
+* [Project Repository](https://github.com/ArwaSaluji01/Auto-Encoding-Variational-Bayes)
+* [Notebook](https://github.com/ArwaSaluji01/Auto-Encoding-Variational-Bayes/blob/main/src/Auto_Encoding_Variational_Bayes.ipynb)
+* [Original Paper PDF](https://github.com/ArwaSaluji01/Auto-Encoding-Variational-Bayes/blob/main/paper/1312.6114v11.pdf)
 
 ---
 
 ## References
 
 **Kingma, D. P., & Welling, M. (2013).**
-Auto-Encoding Variational Bayes.
+*Auto-Encoding Variational Bayes.*
 arXiv:1312.6114.
 
 **Kingma, D. P., & Welling, M. (2014).**
-Auto-Encoding Variational Bayes.
+*Auto-Encoding Variational Bayes.*
 International Conference on Learning Representations (ICLR).
