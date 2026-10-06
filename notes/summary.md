@@ -6,7 +6,9 @@ This project presents a from-scratch implementation of **Auto-Encoding Variation
 
 The objective was to move from the mathematical formulation of variational inference to a complete working generative model implemented in TensorFlow/Keras.
 
-The implementation was developed progressively, covering the probabilistic encoder, reparameterization trick, probabilistic decoder, ELBO objective, stochastic optimization, latent-space visualization, generative sampling, and marginal likelihood estimation.
+The implementation progressively covers the probabilistic encoder, reparameterization trick, probabilistic decoder, ELBO objective, stochastic optimization, latent-space visualization, generative sampling, latent-dimension experiments, wake-sleep comparison, and marginal likelihood estimation.
+
+The implementation is designed as a **miniature research reproduction**, with reduced experimental configurations where necessary to remain practical in Google Colab.
 
 ---
 
@@ -14,17 +16,19 @@ The implementation was developed progressively, covering the probabilistic encod
 
 The primary MNIST model uses:
 
-- 784-dimensional input
-- 500 hidden units
-- 20-dimensional latent space
-- Tanh hidden activations
-- Bernoulli decoder
-- Gaussian latent prior
-- Reparameterization trick
-- ELBO optimization
-- Adagrad optimization
-- Batch size of 100
-- One latent sample per datapoint
+* 784-dimensional input
+* 500 hidden units
+* 20-dimensional latent space
+* Tanh hidden activations
+* Bernoulli decoder
+* Gaussian latent prior
+* Reparameterization trick
+* ELBO optimization
+* Adagrad optimization
+* Batch size of 100
+* One latent sample per datapoint
+
+The MNIST inputs are binarized to match the Bernoulli observation model.
 
 ---
 
@@ -49,11 +53,24 @@ Reconstruction MSE:
 0.115173
 ```
 
-The model produced recognizable MNIST reconstructions and successfully generated new digit-like samples from latent vectors sampled from the standard normal prior.
+The trained model produces recognizable MNIST reconstructions and can generate new digit-like samples by sampling latent vectors from the standard normal prior.
 
-A separate 2D model was trained to visualize the latent representation. The resulting embedding demonstrated continuous latent structure with overlapping digit classes.
+A separate 2D model was trained to visualize the latent representation. The resulting embedding demonstrates continuous latent structure with overlapping digit classes.
 
-A separate 3D model was also implemented to explore the marginal likelihood estimator described in the paper. Hybrid Monte Carlo sampling and density estimation were implemented as an experimental reproduction of the paper's evaluation procedure.
+Additional experiments include a latent-dimension sweep and a lightweight wake-sleep comparison.
+
+A separate low-dimensional model is used to investigate marginal likelihood estimation. The experiment uses HMC for posterior-sampling analysis and Monte Carlo importance sampling using samples from the learned variational posterior.
+
+Final marginal-likelihood results:
+
+```text
+Mean ELBO:                  [PLACEHOLDER]
+Mean estimated log p(x):    [PLACEHOLDER]
+Mean estimated gap:         [PLACEHOLDER]
+Median estimated gap:       [PLACEHOLDER]
+Minimum estimated gap:      [PLACEHOLDER]
+Maximum estimated gap:      [PLACEHOLDER]
+```
 
 ---
 
@@ -61,37 +78,42 @@ A separate 3D model was also implemented to explore the marginal likelihood esti
 
 The project provided practical experience with:
 
-Variational inference
-ELBO derivation and optimization
-KL divergence
-Bernoulli likelihoods
-Gaussian latent-variable models
-The reparameterization trick
-Stochastic gradient optimization
-Latent-space visualization
-Generative sampling
-MCMC-based posterior inference
-Research-paper implementation and experimental validation
+* Variational inference
+* ELBO derivation and optimization
+* KL divergence
+* Bernoulli likelihoods
+* Gaussian latent-variable models
+* The reparameterization trick
+* Stochastic gradient optimization
+* Latent-space visualization
+* Generative sampling
+* Latent-dimension analysis
+* MCMC-based posterior inference
+* Monte Carlo importance sampling
+* Research-paper implementation and experimental validation
 
-A particularly important takeaway was the distinction between reproducing an algorithm conceptually and reproducing a research paper's numerical experiments exactly.
+A particularly important takeaway was the distinction between implementing a research method conceptually and reproducing the original paper's numerical experiments exactly.
 
 ---
 
 ## Future Work
 
 Potential extensions include:
-- Explicit implementation of the paper's MAP/weight-decay objective
-- Systematic hyperparameter studies
-- Convolutional VAE architectures
-- Improved HMC sampling and convergence diagnostics
-- More robust marginal likelihood estimation
-- Reproduction of the paper's Wake-Sleep and MCEM comparisons
-- Experiments on additional datasets
+
+* Explicit implementation of the paper's MAP/weight-decay objective
+* Systematic hyperparameter studies
+* Convolutional VAE architectures
+* Improved HMC sampling and convergence diagnostics
+* More robust marginal likelihood estimators
+* Larger Monte Carlo sample sizes
+* More complete Wake-Sleep and MCEM comparisons
+* Experiments on additional datasets
+* Larger-scale reproduction of the original experimental setup
 
 ---
 
 ## Reference
 
-**Kingma, D. P., & Welling, M.**
+**Kingma, D. P., & Welling.**
 **Auto-Encoding Variational Bayes.**
 arXiv:1312.6114.
